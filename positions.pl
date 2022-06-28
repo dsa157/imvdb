@@ -8,7 +8,7 @@ my %ignore;
 
 getIgnoredPositions();
 getDepartments();
-#getPositions();
+printPositions();
 
 #--------------------------------------------------------
 sub getIgnoredPositions{
@@ -30,7 +30,6 @@ sub getDepartments{
   foreach(@lines) { 
     my ($department, $include) = split(",", $_);
     if ($include == 1) {
-      print "$department\n"; 
       getPositions($department);
     }
   }
@@ -48,17 +47,17 @@ sub getPositions{
     next unless /^$thisDepartment/;
     my ($department, $position, $desc) = split(",", $_);
     next if $position eq "";
-    #if not exists $departments{$department} {
-      #%positions = {};
-      #$departments{$department} = {};
-    #}
     $departments{$department}{$position} = $desc;
-print "-- $position\n";
   }
+}
+
+#--------------------------------------------------------
+sub printPositions{
   foreach (keys %departments) {
+    print "$_\n"; 
     my $tmp = $departments{$_};
     foreach (sort keys %$tmp) {
-      #print "  $_\n";
+      print "  $_\n";
     }
   }
 }
