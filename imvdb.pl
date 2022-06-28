@@ -8,7 +8,8 @@ my %positions;
 my %ignore;
 my %pages;
 
-$MAX_RECS=50;
+$MAX_RECS=500;
+
 $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
 
 my $ua = new LWP::UserAgent;
@@ -115,6 +116,7 @@ sub getEntityBySlug() {
   $entity->{_name} = $name;
   foreach (@lines) {
     getTwitter($entity, $_) if /Tweets/;
+    $entity->{_links} = "has links" if /Links/;
     next unless /$videographyStr\#/;
     next if /$backStr/;
     $entity->{_positions} = $_;
@@ -124,6 +126,7 @@ sub getEntityBySlug() {
 <td><a href='$entity->{_url}'>$entity->{_name}</a></td>
 <td>$entity->{_positions}</td>
 <td>$entity->{_twitter}</td>
+<td>$entity->{_links}</td>
 </tr>
 
 _EOT_
@@ -157,6 +160,8 @@ sub new {
    $self->{_name}      = undef;
    $self->{_positions} = undef;
    $self->{_twitter}   = undef;
+   $self->{_links}     = undef;
    bless $self, $class;
    return $self;
 }
+
