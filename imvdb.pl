@@ -14,16 +14,14 @@ my $ua = new LWP::UserAgent;
 $ua->timeout(120);
 $cnt=0;
 $positionUrlPrefix = "https://imvdb.com/browse/position/";
-$position = "cin";
 $backStr="Back to The Top";
+$videographyStr="videography-by-dept";
 
 print CGI->header;
 
 getIgnoredPositions();
 getDepartments();
 printPositions();
-
-#getSearchByPosition($position);
 
 #--------------------------------------------------------
 sub getIgnoredPositions{
@@ -72,17 +70,19 @@ sub printPositions{
     print "$_\n";
     my $tmp = $departments{$_};
     foreach (sort keys %$tmp) {
-      print "  $_\n";
+      #print "  $_\n";
+      getEntitiesByPosition($_);
     }
   }
 }
 
 #------------------------------------------------------------
-sub getSearchByPosition() {
-  print "Getting " . $position . " list...<br>\n";
-  print "<table>";
+sub getEntitiesByPosition() {
   my $position = shift;
-  $content = getPage($positionUrlPrefix . $position);
+  print "Getting " . $position . " list...<br>\n";
+  print "<table>\n";
+  $url = $positionUrlPrefix . $position;
+  $content = getPage($url);
   my @lines = split("\n", $content);
   foreach (@lines) {
     next unless /imvdb\.com\/n\//;
@@ -95,19 +95,20 @@ sub getSearchByPosition() {
     my($url,$name)=split(/>/);
     getEntityBySlug($url, $name);
   }
-  print "</table>";
+  print "</table>\n";
 }
 
 #------------------------------------------------------------
 sub getEntityBySlug() {
   my $url=shift;
   my $name=shift;
-  my $suffix = "/videography-by-dept";
+  my $suffix = "/$videographyStr";
   my $url2 = $url . $suffix;
+  print "$url2\n";
   my $content = getPage($url2);
   my @lines = split("\n", $content);
   foreach (@lines) {
-    next unless /videography-by-dept\#/;
+    next unless /$videographyStr\#/;
     next if /backStr/;
     print "<tr><td><a href='$url'>$name</a></td><td>$_</td></tr>\n";
   };
