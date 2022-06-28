@@ -6,6 +6,7 @@ use CGI;
 my %departments;
 my %positions;
 my %ignore;
+my %pages;
 
 $MAX_RECS=50;
 $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
@@ -80,7 +81,7 @@ sub printPositions{
 sub getEntitiesByPosition() {
   my $position = shift;
   print "Getting " . $position . " list...<br>\n";
-  print "<table>\n";
+  print "<table border=1>\n";
   $url = $positionUrlPrefix . $position;
   $content = getPage($url);
   my @lines = split("\n", $content);
@@ -104,14 +105,37 @@ sub getEntityBySlug() {
   my $name=shift;
   my $suffix = "/$videographyStr";
   my $url2 = $url . $suffix;
-  print "$url2\n";
+  return if exists $pages{$url2};
+  $pages{$url2}=1;
+  #print "$url2\n";
   my $content = getPage($url2);
   my @lines = split("\n", $content);
+  my $entity = new Entity;
+  $entity->{_url} = $url;
+  $entity->{_name} = $name;
   foreach (@lines) {
+    getTwitter($entity, $_) if /Tweets/;
     next unless /$videographyStr\#/;
-    next if /backStr/;
-    print "<tr><td><a href='$url'>$name</a></td><td>$_</td></tr>\n";
-  };
+    next if /$backStr/;
+    $entity->{_positions} = $_;
+  }
+  print <<_EOT_;
+<tr>
+<td><a href='$entity->{_url}'>$entity->{_name}</a></td>
+<td>$entity->{_positions}</td>
+<td>$entity->{_twitter}</td>
+</tr>
+
+_EOT_
+}
+
+#------------------------------------------------------------
+sub getTwitter() {
+  my $entity = shift;
+  my $line = shift;
+  $line =~ s/^(.*)screen-name\=\"//g;
+  $line =~ s/\"(.*)$//g;
+  $entity->{_twitter} = $line;
 }
 
 #------------------------------------------------------------
@@ -121,4 +145,18 @@ sub getPage() {
   my $response = $ua->request($request);
   my $content = $response->content();
   return $content;
+}
+
+
+#------------------------------------------------------------
+package Entity;
+sub new {
+   my $class = shift;
+   my $self = {};
+   $self->{_url}       = undef;
+   $self->{_name}      = undef;
+   $self->{_positions} = undef;
+   $self->{_twitter}   = undef;
+   bless $self, $class;
+   return $self;
 }
