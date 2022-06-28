@@ -8,7 +8,7 @@ my %positions;
 my %ignore;
 my %pages;
 
-$MAX_RECS=500;
+$MAX_RECS=300;
 
 $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
 
@@ -20,6 +20,8 @@ $backStr="Back to The Top";
 $videographyStr="videography-by-dept";
 
 print CGI->header;
+
+print "Max Records = $MAX_RECS<br>\n";
 
 getIgnoredPositions();
 getDepartments();
@@ -69,19 +71,21 @@ sub getPositions{
 #--------------------------------------------------------
 sub printPositions{
   foreach (keys %departments) {
-    print "$_\n";
+    my $department = $_;
     my $tmp = $departments{$_};
     foreach (sort keys %$tmp) {
       #print "  $_\n";
-      getEntitiesByPosition($_);
+      getEntitiesByPosition($department, $_);
+      last if $cnt++ >= $MAX_RECS;
     }
   }
 }
 
 #------------------------------------------------------------
 sub getEntitiesByPosition() {
+  my $department = shift;
   my $position = shift;
-  print "Getting " . $position . " list...<br>\n";
+  print "Getting $department $position list...<br>\n";
   print "<table border=1>\n";
   $url = $positionUrlPrefix . $position;
   $content = getPage($url);
@@ -123,6 +127,7 @@ sub getEntityBySlug() {
   }
   print <<_EOT_;
 <tr>
+<td>$cnt</td>
 <td><a href='$entity->{_url}'>$entity->{_name}</a></td>
 <td>$entity->{_positions}</td>
 <td>$entity->{_twitter}</td>
