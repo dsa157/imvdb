@@ -1,41 +1,38 @@
 #!/usr/bin/perl
   
 use LWP::UserAgent;
+use CGI;
 
-$MAX_RECS=2;
+$MAX_RECS=200;
 $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
 
 my $ua = new LWP::UserAgent;
 $ua->timeout(120);
 $cnt=0;
+$position = "cin";
 
-getSearchByPosition("dir");
+print CGI->header;
+print "Getting " . $position . " list...<br>\n";
+print "<table>";
 
+getSearchByPosition($position);
+
+print "</table>";
 
 sub getSearchByPosition() {
   my $position = shift;
-  print "Getting " . $position . " list...\n";
   $content = getPage("https://imvdb.com/browse/position/" . $position);
-  print "printing...\n";
   my @lines = split("\n", $content);
   foreach (@lines) {
     next unless /imvdb\.com\/n\//;
     last if $cnt++ >= $MAX_RECS;
     s/<li>//g;
     s/<\/li>//g;
-    print "$_\n";
+    s/<\/a>//g;
+    s/(.*)<a\ href=\"//g;
+    s/\"//g;
+    my($url,$name)=split(/>/);
+    getEntityBySlug($url, $name);
   }
-  print "done.\n";
-}
-
-sub getEntityBySlug() {
-}
-
-sub getPage() {
-  my $url=shift;
-  my $request = new HTTP::Request('GET', $url);
-  my $response = $ua->request($request);
-  my $content = $response->content();
-  return $content;
 }
 
