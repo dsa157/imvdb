@@ -7,8 +7,9 @@ my %departments;
 my %positions;
 my %ignore;
 my %pages;
-
-$MAX_RECS=300;
+my %existingRecords;
+my $outfile = "imvdb.tsv";
+my $MAX_RECS=100;
 
 $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
 
@@ -23,9 +24,22 @@ print CGI->header;
 
 print "Max Records = $MAX_RECS<br>\n";
 
+readExistingRecords();
 getIgnoredPositions();
 getDepartments();
 printPositions();
+
+#--------------------------------------------------------
+sub readExistingRecords{
+  open(F, "<$outfile");
+  while(<F>) {
+    chomp;
+    my ($id, $rest) = split("\t", $_);
+    #print "$id\n";
+    $existingRecords{$id}=1;
+  }
+  close(F);
+}
 
 #--------------------------------------------------------
 sub getIgnoredPositions{
@@ -70,15 +84,17 @@ sub getPositions{
 
 #--------------------------------------------------------
 sub printPositions{
+  open(F, ">>$outfile");
   foreach (keys %departments) {
     my $department = $_;
     my $tmp = $departments{$_};
     foreach (sort keys %$tmp) {
       #print "  $_\n";
       getEntitiesByPosition($department, $_);
-      last if $cnt++ >= $MAX_RECS;
+      last if $cnt > $MAX_RECS;
     }
   }
+  close(F);
 }
 
 #------------------------------------------------------------
@@ -92,7 +108,7 @@ sub getEntitiesByPosition() {
   my @lines = split("\n", $content);
   foreach (@lines) {
     next unless /imvdb\.com\/n\//;
-    last if $cnt++ >= $MAX_RECS;
+    last if $cnt > $MAX_RECS;
     s/<li>//g;
     s/<\/li>//g;
     s/<\/a>//g;
@@ -110,6 +126,7 @@ sub getEntityBySlug() {
   my $name=shift;
   my $suffix = "/$videographyStr";
   my $url2 = $url . $suffix;
+  return if exists $existingRecords{$url};
   return if exists $pages{$url2};
   $pages{$url2}=1;
   #print "$url2\n";
@@ -125,6 +142,15 @@ sub getEntityBySlug() {
     next if /$backStr/;
     $entity->{_positions} = $_;
   }
+  $existingRecords{$name}=1;
+  printWebTableRow($entity); 
+  printTsvRow($entity); 
+  $cnt++;
+}
+
+#------------------------------------------------------------
+sub printWebTableRow() {
+  my $entity = shift;
   print <<_EOT_;
 <tr>
 <td>$cnt</td>
@@ -134,6 +160,14 @@ sub getEntityBySlug() {
 <td>$entity->{_links}</td>
 </tr>
 
+_EOT_
+}
+
+#------------------------------------------------------------
+sub printTsvRow() {
+  my $entity = shift;
+  print F <<_EOT_;
+$entity->{_url}	$entity->{_name}	$entity->{_positions}	$entity->{_twitter}	$entity->{_links}
 _EOT_
 }
 
