@@ -1,9 +1,9 @@
 Department,Include
 Camera Department,1
-Producers,0
-Directorial,0
+Producers,1
+Directorial,1
 Makeup and Hair,0
-Production,0
+Production,1
 Editorial,0
 Production Support,0
 Production Management,0
@@ -11,20 +11,20 @@ Location,0
 Visual Effects,0
 Animation,0
 Choreography,0
-Grip Department,0
-Electrical Department,0
+Grip Department,1
+Electrical Department,1
 Costume and Wardrobe,0
 Art Department,0
 Special Effects,0
 Casting Department,0
-Production Design,0
+Production Design,1
 Sound,0
 Other,0
 Logistics,0
 Post-Production Department,0
 Stunts Department,0
 Management,0
-Writing,0
+Writing,1
 Behind The Scenes,0
 Aerial Copter,0
-Interactive,1
+Interactive,0

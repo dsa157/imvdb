@@ -9,13 +9,13 @@ my %ignore;
 my %pages;
 my %existingRecords;
 my $outfile = "imvdb.tsv";
-my $MAX_RECS=100;
+my $MAX_RECS=500;
 
 $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
 
 my $ua = new LWP::UserAgent;
 $ua->timeout(120);
-$cnt=0;
+$cnt=1;
 $positionUrlPrefix = "https://imvdb.com/browse/position/";
 $backStr="Back to The Top";
 $videographyStr="videography-by-dept";
@@ -28,6 +28,10 @@ readExistingRecords();
 getIgnoredPositions();
 getDepartments();
 printPositions();
+print <<_EOT_;
+done.
+view <a href="imvdb.tsv">Tab Separated Data File</a>
+_EOT_
 
 #--------------------------------------------------------
 sub readExistingRecords{
