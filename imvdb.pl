@@ -144,12 +144,16 @@ sub getEntityBySlug() {
     $entity->{_links} = "has links" if /Links/;
     next unless /$videographyStr\#/;
     next if /$backStr/;
-    $entity->{_positions} = $_;
+    my $positionsStr = $_;
+    $entity->{_positions} = $positionsStr;
   }
   $existingRecords{$name}=1;
-  printWebTableRow($entity); 
-  printTsvRow($entity); 
-  $cnt++;
+  my $positionCount = countCredits($entity->{_positions});
+  if ($positionCount > 1) {
+    printWebTableRow($entity); 
+    printTsvRow($entity); 
+    $cnt++;
+  }
 }
 
 #------------------------------------------------------------
@@ -193,6 +197,23 @@ sub getPage() {
   return $content;
 }
 
+#--------------------------------------------------
+sub countCredits() {
+ my $str = shift;
+ my $count = shift;
+#print "-- $str\n";
+ my($str1, $rest) = split('\(', $str, 2);
+ my($count1, $rest2) = split('\)', $rest, 2);
+ $count1 = 0 if !defined($count1);
+ $count += $count1;
+ if ($count1 > 0) {
+   $count = countCredits($rest2, $count);
+ }
+ else {
+  return $count;
+ }
+ #print "$count\n";
+}
 
 #------------------------------------------------------------
 package Entity;
